@@ -1,0 +1,189 @@
+let c,d=[],u=0,cl,sz=5,pt=[];
+let hearts=[];
+let recipientName="Someone Special 💖";
+
+function setup(){
+createCanvas(600,600);
+c=color(0,255,255);
+cl=[[255,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,128],[255,128,0],[255,0,200]];
+for(let i=0;i<50;i++)pt.push({x:random(600),y:random(600),vx:random(-0.5,0.5),vy:random(-0.5,0.5),s:random(2,5)});
+}
+
+function draw(){
+drawBackground();
+drawHearts();
+
+// strokes
+for(let s of d){
+push();
+stroke(s.c);
+strokeWeight(s.s);
+strokeCap(ROUND);
+strokeJoin(ROUND);
+drawingContext.shadowBlur=25;
+drawingContext.shadowColor=s.c.toString();
+line(s.x1,s.y1,s.x2,s.y2);
+drawingContext.shadowBlur=40;
+line(s.x1,s.y1,s.x2,s.y2);
+pop();
+}
+
+drawUI();
+
+// drawing input
+if(mouseIsPressed&&mouseY>220&&!u){
+push();
+stroke(c);
+strokeWeight(sz);
+strokeCap(ROUND);
+strokeJoin(ROUND);
+drawingContext.shadowBlur=25;
+drawingContext.shadowColor=c.toString();
+
+if(d.length>0&&d[d.length-1].drawing){
+let l=d[d.length-1];
+line(l.x2,l.y2,mouseX,mouseY);
+drawingContext.shadowBlur=40;
+line(l.x2,l.y2,mouseX,mouseY);
+d.push({x1:l.x2,y1:l.y2,x2:mouseX,y2:mouseY,c:c,s:sz,drawing:1});
+}else{
+d.push({x1:mouseX,y1:mouseY,x2:mouseX,y2:mouseY,c:c,s:sz,drawing:1});
+}
+
+hearts.push({x:mouseX,y:mouseY,a:255,s:random(6,12),vy:random(-0.5,-1.5)});
+pop();
+}
+}
+
+function drawBackground(){
+push();
+noStroke();
+for(let i=0;i<height;i++){fill(0,10+i*0.05,30+i*0.08);rect(0,i,width,1);}
+fill(100,150,255,30);
+for(let p of pt){
+circle(p.x,p.y,p.s);
+p.x+=p.vx;p.y+=p.vy;
+if(p.x<0||p.x>600)p.vx*=-1;
+if(p.y<0||p.y>600)p.vy*=-1;
+}
+pop();
+}
+
+function drawHearts(){
+for(let i=hearts.length-1;i>=0;i--){
+let h=hearts[i];
+drawHeartShape(this,h.x,h.y,h.s,h.a);
+h.y+=h.vy;
+h.a-=3;
+if(h.a<=0)hearts.splice(i,1);
+}
+}
+
+function drawHeartShape(g,x,y,s,a){
+g.push();
+g.translate(x,y);
+g.scale(s/20);
+g.noStroke();
+g.fill(255,105,180,a); // soft pink hearts
+g.beginShape();
+g.vertex(0,-10);
+g.bezierVertex(10,-20,20,-5,0,15);
+g.bezierVertex(-20,-5,-10,-20,0,-10);
+g.endShape(CLOSE);
+g.pop();
+}
+
+function drawUI(){
+drawingContext.shadowBlur=0;
+fill(255);noStroke();textSize(16);
+text('Draw a Valentine! Undo: Ctrl+Z | Clear: C | Size: 1-9',10,20);
+
+for(let i=0;i<cl.length;i++){
+push();
+drawingContext.shadowBlur=30;
+drawingContext.shadowColor='rgb('+cl[i][0]+','+cl[i][1]+','+cl[i][2]+')';
+fill(cl[i][0],cl[i][1],cl[i][2]);
+noStroke();
+rect(10+i*50,40,40,40);
+pop();
+if(mouseX>10+i*50&&mouseX<50+i*50&&mouseY>40&&mouseY<80&&mouseIsPressed)c=color(cl[i][0],cl[i][1],cl[i][2]);
+}
+
+push();
+drawingContext.shadowBlur=30;
+drawingContext.shadowColor=c.toString();
+fill(c);
+noStroke();
+rect(10,100,40,40);
+pop();
+
+fill(255);noStroke();textSize(12);
+text('Current',55,120);
+textSize(14);
+text('Size: '+sz,10,160);
+
+fill(255,182,193); // baby pink button
+rect(10,180,120,30);
+fill(0);textSize(14);
+text('Save Card 💌',20,200);
+
+if(mouseX>10&&mouseX<130&&mouseY>180&&mouseY<210&&mouseIsPressed){
+recipientName = prompt("Who is this card for?", recipientName) || recipientName;
+saveCard();
+u=1;
+}
+}
+
+function saveCard(){
+let img=createGraphics(600,600);
+
+img.push();
+img.noStroke();
+for(let i=0;i<600;i++){img.fill(0,10+i*0.05,30+i*0.08);img.rect(0,i,600,1);}
+img.fill(100,150,255,30);
+for(let p of pt){img.circle(p.x,p.y,p.s);}
+img.pop();
+
+for(let h of hearts) drawHeartShape(img,h.x,h.y,h.s,h.a);
+
+for(let s of d){
+img.push();
+img.stroke(s.c);
+img.strokeWeight(s.s);
+img.strokeCap(ROUND);
+img.strokeJoin(ROUND);
+img.drawingContext.shadowBlur=25;
+img.drawingContext.shadowColor=s.c.toString();
+img.line(s.x1,s.y1,s.x2,s.y2);
+img.drawingContext.shadowBlur=40;
+img.line(s.x1,s.y1,s.x2,s.y2);
+img.pop();
+}
+
+// 💗 BABY PINK FRAME 
+img.noFill();
+img.stroke(255,182,193);
+img.strokeWeight(12);
+img.rect(10,10,580,580,30);
+
+// 💖 Romantic Text
+img.noStroke();
+img.fill(255,182,193);
+img.textAlign(CENTER,CENTER);
+img.textFont('Georgia'); // romantic serif
+img.textSize(42);
+img.text("Happy Valentine’s Day",300,70);
+
+img.textSize(30);
+img.text("For: "+recipientName,300,540);
+
+save(img,'valentine-card.png');
+}
+
+function mouseReleased(){if(d.length>0)d[d.length-1].drawing=0;u=0;}
+
+function keyPressed(){
+if((key=='z'||key=='Z')&&keyIsDown(CONTROL))d.pop();
+if(key=='c'||key=='C')d=[];
+if(key>='1'&&key<='9')sz=int(key);
+}
