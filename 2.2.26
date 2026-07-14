@@ -1,6 +1,6 @@
 let c,d=[],u=0,cl,sz=5,pt=[];
 let hearts=[];
-let recipientName="Someone Special 💖";
+let recipientName="To you 💖";
 
 function setup(){
 createCanvas(600,600);
